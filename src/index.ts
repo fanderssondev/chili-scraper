@@ -1,5 +1,5 @@
-import { title } from 'process';
 import puppeteer from 'puppeteer';
+import * as fs from 'fs';
 
 interface Product {
   sku: string;
@@ -17,41 +17,47 @@ interface Product {
 const baseURL = 'https://www.pepperworldhotshop.com/en/bbq-shop/fresh-chillies/';
 
 const scrape = async () => {
+  const start = Date.now();
+
   console.log('scraping...');
 
   // Launch browser and open new page
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
-  console.log('before');
   await page.goto(baseURL, { waitUntil: 'networkidle0' });
-  console.log('after');
+
+  // Wait for the images to load by targeting the specific selector for the images
+  // await page.waitForSelector('.productList > .productBox.product-box img');
 
   const res = await page.$$eval('.productList > .productBox.product-box > .borderbox > form', (elements) => {
+    console.log('inside', new Date());
     return elements.map((e) => {
       return {
-        title: e.querySelector<HTMLDivElement>('.listDetails > .title')?.innerText ?? 'FAILED',
-        hotness: +(e.querySelector<HTMLImageElement>('.listDetails > .hotness > img')?.title.split(' ')[1] ?? 0),
+        title: e.querySelector<HTMLDivElement>('.listDetails > .title')?.innerText,
+        hotness: +(e.querySelector<HTMLImageElement>('.listDetails > .hotness > img')?.title.split(' ')[1] ?? -1),
         price: +(
           e
             .querySelector<HTMLAnchorElement>('.listDetails > .price > .content > .lead > a')
             ?.innerText.split(' ')[0]
-            .replace(',', '.') ?? 0
+            .replace(',', '.') ?? -1
         ),
         pictures: {
-          smallPic: e.querySelector<HTMLImageElement>('img')?.src,
+          smallPic: e.querySelector<HTMLImageElement>('img')?.getAttribute('data-src'),
         },
       };
     });
   });
 
-  console.log(res);
+  // console.log(res);
+
+  fs.writeFile('products.json', JSON.stringify(res, null, 2), (err) => {});
 
   // Close browser
   await browser.close();
+
+  const end = Date.now();
+  console.log(`Scraping took ${(end - start) / 1000} seconds`);
 };
 
 scrape();
-
-// https://www.pepperworldhotshop.com/out/pictures/generated/product/1/160_155_75/ba097_die-letzten-ihrer-art.jpg
-// https://www.pepperworldhotshop.com/out/pictures/master/product/1/ba097_die-letzten-ihrer-art.jpg
