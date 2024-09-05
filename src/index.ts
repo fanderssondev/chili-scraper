@@ -131,7 +131,7 @@ const scrape = async () => {
 
   // Read in products short version
   const products: Product_short[] = JSON.parse(fs.readFileSync('./products.json', { encoding: 'utf-8' }));
-  const currentProduct = products[3];
+  const currentProduct = products[0];
 
   // Launch browser and goto page
   const browser = await puppeteer.launch({ headless: true });
@@ -165,13 +165,15 @@ const scrape = async () => {
       const morePicsContainer = element.querySelector<HTMLDivElement>('#morePicsContainer');
 
       if (morePicsContainer) {
-        const imgs = Array.from(morePicsContainer.querySelectorAll<HTMLAnchorElement>('ul li a')).map(
-          (img) => img.href
+        const links = Array.from(morePicsContainer.querySelectorAll<HTMLAnchorElement>('ul li a')).map(
+          (link) => link.href
         );
-        return imgs;
+        return links;
       }
 
-      return [];
+      const link = element.querySelector<HTMLAnchorElement>('.picture.details-picture a.details-picture-link')?.href!;
+
+      return [link];
     };
 
     return {
@@ -207,7 +209,7 @@ const scrape = async () => {
 
   const product_long: Product_long = {
     title: currentProduct.title,
-    sku: res.sku.split(' ').pop()!,
+    sku: res.sku.split(' ').pop() ?? 'FAIL',
     slug: currentProduct.slug,
     price: currentProduct.price,
     pictures: {
