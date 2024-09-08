@@ -312,19 +312,19 @@ interface Product_short {
 /**
  * Clean html
  */
-const products: Product_long[] = JSON.parse(fs.readFileSync('./products.json', { encoding: 'utf-8' }));
+// const products: Product_long[] = JSON.parse(fs.readFileSync('./products.json', { encoding: 'utf-8' }));
 
-const newProducts: Product_long[] = products.map((product) => {
-  return {
-    ...product,
-    description: {
-      description_short: product.description.description_short,
-      description_long: cleanHTML(product.description.description_long.trim()),
-    },
-  };
-});
+// const newProducts: Product_long[] = products.map((product) => {
+//   return {
+//     ...product,
+//     description: {
+//       description_short: product.description.description_short,
+//       description_long: cleanHTML(product.description.description_long.trim()),
+//     },
+//   };
+// });
 
-fs.writeFile('products.json', JSON.stringify(newProducts, null, 2), (err) => {});
+// fs.writeFile('products.json', JSON.stringify(newProducts, null, 2), (err) => {});
 
 // console.log(newProducts);
 
