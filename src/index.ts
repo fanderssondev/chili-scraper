@@ -1,42 +1,42 @@
 import puppeteer from 'puppeteer';
 import * as fs from 'fs';
-import { url } from 'inspector';
+import { cleanHTML } from './utils';
 
 interface Product_long {
-    title: string;
-    sku: string;
-    slug: string;
-    price: number;
-    pictures: {
-        smallPic: string;
-        largePics: string[];
+  title: string;
+  sku: string;
+  slug: string;
+  price: number;
+  pictures: {
+    smallPic: string;
+    largePics: string[];
+  };
+  description: {
+    description_short: string;
+    description_long: string;
+  };
+  product_details: {
+    category: string;
+    manufacturer: string;
+    hotness: number;
+    weight: number;
+    rating: {
+      average: number;
+      nr_of_reviews: number;
     };
-    description: {
-        description_short: string;
-        description_long: string;
-    };
-    product_details: {
-        category: string;
-        manufacturer: string;
-        hotness: number;
-        weight: number;
-        rating: {
-            average: number;
-            nr_of_reviews: number;
-        };
-    };
-    url: string;
+  };
+  url: string;
 }
 
 interface Product_short {
-    title: string;
-    slug: string;
-    hotness: number;
-    price: number;
-    pictures: {
-        smallPic: string;
-    };
-    url: string;
+  title: string;
+  slug: string;
+  hotness: number;
+  price: number;
+  pictures: {
+    smallPic: string;
+  };
+  url: string;
 }
 
 /**
@@ -59,7 +59,7 @@ interface Product_short {
 //     console.log('inside', new Date());
 //     return elements.map((e) => {
 //       return {
-//         title: e.querySelector<HTMLDivElement>('.listDetails > .title')?.innerText,
+//         title: e.querySelector<HTMLDivElement>('.listDetails > .title')?.innerText ?? 'Fail',
 //         hotness: +(e.querySelector<HTMLImageElement>('.listDetails > .hotness > img')?.title.split(' ')[1] ?? -1),
 //         price: +(
 //           e
@@ -68,14 +68,14 @@ interface Product_short {
 //             .replace(',', '.') ?? -1
 //         ),
 //         pictures: {
-//           smallPic: e.querySelector<HTMLImageElement>('img')?.getAttribute('data-src'),
+//           smallPic: e.querySelector<HTMLImageElement>('img')?.getAttribute('data-src') ?? 'FAIL',
 //         },
-//         url: e.querySelector<HTMLAnchorElement>('a')?.href,
+//         url: e.querySelector<HTMLAnchorElement>('a')?.href ?? 'FAIL',
 //       };
 //     });
 //   });
 
-//   const products: ProductTemp[] = res.map((product) => {
+//   const products = res.map((product) => {
 //     return {
 //       ...product,
 //       slug: product.url?.split('/').at(-2),
@@ -127,142 +127,131 @@ interface Product_short {
  * Get pdp info
  */
 // const scrape = async () => {
-//     const start = Date.now();
+//   const start = Date.now();
 
-//     // Read in products short version
-//     const products: Product_short[] = JSON.parse(fs.readFileSync('./products_short.json', { encoding: 'utf-8' }));
+//   // Read in products short version
+//   const products: Product_short[] = JSON.parse(fs.readFileSync('./products_short.json', { encoding: 'utf-8' }));
 
-//     // Launch browser and goto page
-//     const browser = await puppeteer.launch({ headless: true });
-//     const page = await browser.newPage();
+//   // Launch browser and goto page
+//   const browser = await puppeteer.launch({ headless: true });
+//   const page = await browser.newPage();
 
-//     interface Res {
-//         sku: string;
-//         pictures: {
-//             largePics: string[];
-//         };
-//         description: {
-//             description_short: string;
-//             description_long: string;
-//         };
-//         product_details: {
-//             category: string;
-//             manufacturer: string;
-//             weight: number;
-//             rating: {
-//                 average: number;
-//                 nr_of_reviews: number;
-//             };
-//         };
-//     }
-
-//     const productsAll = async () => {
-//         // const product = products[0];
-
-//         const allProducts: Product_long[] = [];
-
-//         for (const product of products) {
-//             await page.goto(product.url, {
-//                 waitUntil: 'networkidle0',
-//             });
-
-//             const res: Res = await page.$eval('#productinfo', (element) => {
-//                 const getPics = (): string[] => {
-//                     const morePicsContainer = element.querySelector<HTMLDivElement>('#morePicsContainer');
-
-//                     if (morePicsContainer) {
-//                         const links = Array.from(morePicsContainer.querySelectorAll<HTMLAnchorElement>('ul li a')).map(
-//                             (link) => link.href
-//                         );
-//                         return links;
-//                     }
-
-//                     const link = element.querySelector<HTMLAnchorElement>(
-//                         '.picture.details-picture a.details-picture-link'
-//                     )?.href!;
-
-//                     return [link];
-//                 };
-
-//                 return {
-//                     sku: element.querySelector<HTMLSpanElement>('.details-col-middle > span')?.innerHTML ?? '',
-//                     pictures: {
-//                         largePics: getPics(),
-//                     },
-//                     description: {
-//                         description_short:
-//                             element.querySelector<HTMLParagraphElement>('#productShortdesc')?.innerText ?? 'FAIL',
-//                         description_long: element.querySelector<HTMLDivElement>('#description')?.innerHTML ?? 'FAIL',
-//                     },
-//                     product_details: {
-//                         category:
-//                             element.querySelector<HTMLDataElement>('[data-original-title="Category"]')
-//                                 ?.nextElementSibling?.textContent ?? 'Fail',
-//                         manufacturer:
-//                             element.querySelector<HTMLDataElement>('[data-original-title="Manufacturer"]')
-//                                 ?.nextElementSibling?.textContent ?? 'Fail',
-//                         weight: +(
-//                             element
-//                                 .querySelector<HTMLParagraphElement>('#productPricePerUnit_ > p')
-//                                 ?.innerText.split(' ')[0] ?? -1
-//                         ),
-//                         rating: {
-//                             average: +(element.querySelector<HTMLDivElement>('.ratings .d-none')?.innerText ?? -1),
-//                             nr_of_reviews: +(
-//                                 element
-//                                     .querySelector<HTMLElement>('.ratings a small')
-//                                     ?.innerText.split(' ')[0]
-//                                     .replace('(', '') ?? -1
-//                             ),
-//                         },
-//                     },
-//                 };
-//             });
-
-//             const product_long: Product_long = {
-//                 title: product.title,
-//                 sku: res.sku.split(' ').pop() ?? 'FAIL',
-//                 slug: product.slug,
-//                 price: product.price,
-//                 pictures: {
-//                     smallPic: product.pictures.smallPic,
-//                     largePics: res.pictures.largePics,
-//                 },
-//                 description: {
-//                     description_short: res.description.description_short,
-//                     description_long: res.description.description_long,
-//                 },
-//                 product_details: {
-//                     category: res.product_details.category,
-//                     manufacturer: res.product_details.manufacturer,
-//                     hotness: product.hotness,
-//                     weight: res.product_details.weight,
-//                     rating: {
-//                         average: res.product_details.rating.average,
-//                         nr_of_reviews: res.product_details.rating.nr_of_reviews,
-//                     },
-//                 },
-//                 url: product.url,
-//             };
-//             allProducts.push(product_long);
-//         }
-//         return allProducts;
+//   interface Res {
+//     sku: string;
+//     pictures: {
+//       largePics: string[];
 //     };
+//     description: {
+//       description_short: string;
+//       description_long: string;
+//     };
+//     product_details: {
+//       category: string;
+//       manufacturer: string;
+//       weight: number;
+//       rating: {
+//         average: number;
+//         nr_of_reviews: number;
+//       };
+//     };
+//   }
 
-//     fs.writeFile('products.json', JSON.stringify(await productsAll(), null, 2), (err) => {});
+//   const productsAll = async () => {
+//     // const product = products[0];
 
-//     // const filePath = `src/descriptions/${product_long.slug}.html`;
-//     // const fileContent = `export const description_long: string = "${product_long.description.description_long}";`;
-//     // await fs.promises.writeFile(filePath, fileContent, 'utf8');
+//     const allProducts: Product_long[] = [];
 
-//     // console.log(product_long);
+//     for (const product of products) {
+//       await page.goto(product.url, {
+//         waitUntil: 'networkidle0',
+//       });
 
-//     // Close browser
-//     await browser.close();
+//       const res: Res = await page.$eval('#productinfo', (element) => {
+//         const getPics = (): string[] => {
+//           const morePicsContainer = element.querySelector<HTMLDivElement>('#morePicsContainer');
 
-//     // Calculate runtime
-//     const end = Date.now();
-//     console.log(`Scraping took ${(end - start) / 1000} seconds`);
+//           if (morePicsContainer) {
+//             const links = Array.from(morePicsContainer.querySelectorAll<HTMLAnchorElement>('ul li a')).map(
+//               (link) => link.href
+//             );
+//             return links;
+//           }
+
+//           const link = element.querySelector<HTMLAnchorElement>('.picture.details-picture a.details-picture-link')
+//             ?.href!;
+
+//           return [link];
+//         };
+
+//         return {
+//           sku: element.querySelector<HTMLSpanElement>('.details-col-middle > span')?.innerHTML ?? '',
+//           pictures: {
+//             largePics: getPics(),
+//           },
+//           description: {
+//             description_short: element.querySelector<HTMLParagraphElement>('#productShortdesc')?.innerText ?? 'FAIL',
+//             description_long: element.querySelector<HTMLDivElement>('#description')?.innerHTML ?? 'FAIL',
+//           },
+//           product_details: {
+//             category:
+//               element.querySelector<HTMLDataElement>('[data-original-title="Category"]')?.nextElementSibling
+//                 ?.textContent ?? 'Fail',
+//             manufacturer:
+//               element.querySelector<HTMLDataElement>('[data-original-title="Manufacturer"]')?.nextElementSibling
+//                 ?.textContent ?? 'Fail',
+//             weight: +(
+//               element.querySelector<HTMLParagraphElement>('#productPricePerUnit_ > p')?.innerText.split(' ')[0] ?? -1
+//             ),
+//             rating: {
+//               average: +(element.querySelector<HTMLDivElement>('.ratings .d-none')?.innerText ?? -1),
+//               nr_of_reviews: +(
+//                 element.querySelector<HTMLElement>('.ratings a small')?.innerText.split(' ')[0].replace('(', '') ?? -1
+//               ),
+//             },
+//           },
+//         };
+//       });
+
+//       const product_long: Product_long = {
+//         title: product.title,
+//         sku: res.sku.split(' ').pop() ?? 'FAIL',
+//         slug: product.slug,
+//         price: product.price,
+//         pictures: {
+//           smallPic: product.pictures.smallPic,
+//           largePics: res.pictures.largePics,
+//         },
+//         description: {
+//           description_short: res.description.description_short,
+//           description_long: res.description.description_long,
+//         },
+//         product_details: {
+//           category: res.product_details.category,
+//           manufacturer: res.product_details.manufacturer,
+//           hotness: product.hotness,
+//           weight: res.product_details.weight,
+//           rating: {
+//             average: res.product_details.rating.average,
+//             nr_of_reviews: res.product_details.rating.nr_of_reviews,
+//           },
+//         },
+//         url: product.url,
+//       };
+//       allProducts.push(product_long);
+//     }
+//     return allProducts;
+//   };
+
+//   fs.writeFile('products.json', JSON.stringify(await productsAll(), null, 2), (err) => {});
+
+//   // console.log(product_long);
+
+//   // Close browser
+//   await browser.close();
+
+//   // Calculate runtime
+//   const end = Date.now();
+//   console.log(`Scraping took ${(end - start) / 1000} seconds`);
 // };
 
 /**
@@ -310,9 +299,33 @@ interface Product_short {
 //     console.log(`Scraping took ${(end - start) / 1000} seconds`);
 // };
 
+/**
+ * Count nr of lg_pics
+ */
+// const products: Product_long[] = JSON.parse(fs.readFileSync('./products.json', { encoding: 'utf-8' }));
+
+// const nrOfPics = products.reduce((tot, product) => tot + product.pictures.largePics.length, 0);
+// console.log(nrOfPics);
+
+// scrape();
+
+/**
+ * Clean html
+ */
 const products: Product_long[] = JSON.parse(fs.readFileSync('./products.json', { encoding: 'utf-8' }));
 
-const nrOfPics = products.reduce((tot, product) => tot + product.pictures.largePics.length, 0);
-console.log(nrOfPics);
+const newProducts: Product_long[] = products.map((product) => {
+  return {
+    ...product,
+    description: {
+      description_short: product.description.description_short,
+      description_long: cleanHTML(product.description.description_long.trim()),
+    },
+  };
+});
+
+fs.writeFile('products.json', JSON.stringify(newProducts, null, 2), (err) => {});
+
+// console.log(newProducts);
 
 // scrape();
