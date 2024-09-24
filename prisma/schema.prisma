@@ -8,48 +8,55 @@ datasource db {
 }
 
 model Product {
-  id             Int             @id @default(autoincrement())
-  title          String
-  sku            String
-  slug           String
-  price          Float
-  pictures       Pictures?
-  description    Description?
-  productDetails ProductDetails?
-  url            String
+  id        String   @id @default(uuid())
+  title     String
+  sku       String   @unique
+  slug      String
+  price     Float
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pictures        Picture       @relation(fields: [picturesId], references: [id])
+  picturesId      String        @unique
+  description     Description   @relation(fields: [descriptionId], references: [id])
+  descriptionId   String        @unique
+  productDetail   ProductDetail @relation(fields: [productDetailId], references: [id])
+  productDetailId String        @unique
 }
 
-model Pictures {
-  id        Int      @id @default(autoincrement())
+model Picture {
+  id        String   @id @default(uuid())
   smallPic  String
   largePics String[]
-  product   Product? @relation(fields: [productId], references: [id])
-  productId Int?     @unique
+
+  product Product?
 }
 
 model Description {
-  id               Int      @id @default(autoincrement())
-  descriptionShort String
-  descriptionLong  String
-  product          Product? @relation(fields: [productId], references: [id])
-  productId        Int?     @unique
+  id                String @id @default(uuid())
+  description_short String
+  description_long  String
+
+  product Product?
 }
 
-model ProductDetails {
-  id           Int      @id @default(autoincrement())
+model ProductDetail {
+  id           String @id @default(uuid())
   category     String
   manufacturer String
-  hotness      Int
+  hotness      Float
   weight       Float
-  rating       Rating?
-  product      Product? @relation(fields: [productId], references: [id])
-  productId    Int?     @unique
+
+  product  Product?
+  rating   Rating   @relation(fields: [ratingId], references: [id])
+  ratingId String   @unique
 }
 
 model Rating {
-  id              Int             @id @default(autoincrement())
-  average         Float
-  nrOfReviews     Int
-  productDetail   ProductDetails? @relation(fields: [productDetailId], references: [id])
-  productDetailId Int?            @unique
+  id            String @id @default(uuid())
+  average       Float
+  nr_of_reviews Int
+
+  ProductDetails ProductDetail?
 }
