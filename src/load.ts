@@ -29,28 +29,32 @@ interface Product {
 }
 
 const main = async () => {
-  // const products = await db.product.findMany({
-  //   include: {
-  //     description: true,
-  //     productDetail: true,
-  //   },
-  // });
+  const products = await db.product.findMany();
 
   // fs.writeFile('products2.json', JSON.stringify(products, null, 2), (err) => {});
-  // console.log(products);
+  console.log(products);
 
-  const products: Product[] = JSON.parse(fs.readFileSync('./products2.json', { encoding: 'utf-8' }));
+  // const products: Product[] = JSON.parse(fs.readFileSync('./products2.json', { encoding: 'utf-8' }));
 
-  for (const p of products) {
-    await db.product.update({
-      where: {
-        id: p.id,
-      },
-      data: {
-        pictures: p.pictures.largePics,
-      },
-    });
-  }
+  // for (const product of products) {
+  //   let newPics: string[] = [];
+
+  //   for (const pics of product.pictures) {
+  //     const renamed = pics.replace('.jpg', '.png');
+  //     newPics.push(renamed);
+  //   }
+
+  //   // console.log(newPics);
+
+  //   await db.product.update({
+  //     where: {
+  //       id: product.id,
+  //     },
+  //     data: {
+  //       pictures: newPics,
+  //     },
+  //   });
+  // }
 
   // console.log(JSON.stringify(products, null, 3));
 };
