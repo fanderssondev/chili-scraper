@@ -14,14 +14,13 @@ model Product {
   slug      String   @unique
   price     Float
   pictures  String[]
-  url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  description     Description   @relation(fields: [descriptionId], references: [id])
-  descriptionId   String        @unique
-  productDetail   ProductDetail @relation(fields: [productDetailId], references: [id])
-  productDetailId String        @unique
+  description     Description    @relation(fields: [descriptionId], references: [id])
+  descriptionId   String         @unique
+  productDetails  ProductDetails @relation(fields: [productDetailId], references: [id])
+  productDetailId String         @unique
 }
 
 model Description {
@@ -32,7 +31,7 @@ model Description {
   product Product?
 }
 
-model ProductDetail {
+model ProductDetails {
   id           String @id @default(uuid())
   category     String
   manufacturer String
@@ -49,5 +48,5 @@ model Rating {
   average       Float
   nr_of_reviews Int
 
-  ProductDetails ProductDetail?
+  ProductDetails ProductDetails?
 }
