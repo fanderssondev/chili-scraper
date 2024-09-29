@@ -2,11 +2,20 @@ import { db } from './db';
 import * as fs from 'fs';
 
 const main = async () => {
-  const products = await db.product.findMany({
-    include: {
-      pictures: true,
-    },
-  });
+  const products = await db.product.findMany({});
+
+  for (const product of products) {
+    const newpics: string[] = product.pictures.map((pic) => pic.replace('.jpg', '.png'));
+
+    await db.product.update({
+      where: {
+        id: product.id,
+      },
+      data: {
+        pictures: newpics,
+      },
+    });
+  }
 
   // for (const product of products) {
   //   const newSmallPic = `${product.slug}_sm.jpg`;
@@ -27,23 +36,21 @@ const main = async () => {
   //   }
   // }
 
-  for (const product of products) {
-    const newLargePics = [];
-    for (const [index, pic] of product.pictures.largePics.entries()) {
-      newLargePics.push(`${product.slug}_${index + 1}.jpg`);
-    }
+  // for (const product of products) {
+  //   const newLargePics = [];
+  //   for (const [index, pic] of product.pictures.largePics.entries()) {
+  //     newLargePics.push(`${product.slug}_${index + 1}.jpg`);
+  //   }
 
-    // await db.picture.update({
-    //   where: {
-    //     id: product.picturesId,
-    //   },
-    //   data: {
-    //     largePics: newLargePics,
-    //   },
-    // });
-  }
-
-  console.log(JSON.stringify(products, null, 3));
+  // await db.picture.update({
+  //   where: {
+  //     id: product.picturesId,
+  //   },
+  //   data: {
+  //     largePics: newLargePics,
+  //   },
+  // });
+  // console.log(JSON.stringify(products, null, 3));
 };
 
 main()

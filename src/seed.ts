@@ -1,7 +1,5 @@
-import { title } from 'process';
 import { db } from './db';
 import * as fs from 'fs';
-import { create } from 'domain';
 
 interface Product {
   title: string;
@@ -25,68 +23,95 @@ interface Product {
   };
 }
 
+interface Product2 {
+  title: string;
+  sku: string;
+  slug: string;
+  price: number;
+  pictures: {
+    smallPic: string;
+    largePics: string[];
+  };
+  description: {
+    description_short: string;
+    description_long: string;
+  };
+  productDetail: {
+    category: string;
+    manufacturer: string;
+    hotness: number;
+    weight: number;
+    rating: {
+      average: number;
+      nr_of_reviews: number;
+    };
+  };
+}
+
 const main = async () => {
   const products = JSON.parse(fs.readFileSync('./products.json', { encoding: 'utf-8' }));
-  const products2 = JSON.parse(fs.readFileSync('./products2.json', { encoding: 'utf-8' }));
+  const products2: Product2[] = JSON.parse(fs.readFileSync('./products2.json', { encoding: 'utf-8' }));
 
-  // console.log(JSON.stringify(products, null, 3));
+  console.log(JSON.stringify(products2, null, 3));
 
-  // let array: Product[] = [];
+  let array: Product[] = [];
   for (let i = 0; i < products2.length; i++) {
-    // const newProduct: Product = {
-    //   title: products2[i].title,
-    //   sku: products2[i].sku,
-    //   slug: products2[i].slug,
-    //   price: products2[i].price,
-    //   pictures: products2[i].pictures.largePics,
-    //   description: {
-    //     description_short: products2[i].description.description_short,
-    //     description_long: products2[i].description.description_long,
-    //   },
-    //   productDetails: {
-    //     category: products2[i].productDetail.category,
-    //     manufacturer: products2[i].productDetail.manufacturer,
-    //     hotness: products2[i].productDetail.hotness,
-    //     weight: products2[i].productDetail.weight,
-    //     rating: {
-    //       average: products[i].product_details.rating.average,
-    //       nr_of_reviews: products[i].product_details.rating.nr_of_reviews,
-    //     },
-    //   },
-    // };
+    const newpics: string[] = products2[i].pictures.largePics.map((pic) => pic.replace('.jpg', '.png'));
 
-    await db.product.create({
-      data: {
-        title: products2[i].title,
-        sku: products2[i].sku,
-        slug: products2[i].slug,
-        price: products2[i].price,
-        pictures: products2[i].pictures.largePics,
-        description: {
-          create: {
-            description_short: products2[i].description.description_short,
-            description_long: products2[i].description.description_long,
-          },
-        },
-        productDetails: {
-          create: {
-            category: products2[i].productDetail.category,
-            manufacturer: products2[i].productDetail.manufacturer,
-            hotness: products2[i].productDetail.hotness,
-            weight: products2[i].productDetail.weight,
-            rating: {
-              create: {
-                average: products[i].product_details.rating.average,
-                nr_of_reviews: products[i].product_details.rating.nr_of_reviews,
-              },
-            },
-          },
+    const newProduct: Product = {
+      title: products2[i].title,
+      sku: products2[i].sku,
+      slug: products2[i].slug,
+      price: products2[i].price,
+      pictures: newpics,
+      description: {
+        description_short: products2[i].description.description_short,
+        description_long: products2[i].description.description_long,
+      },
+      productDetails: {
+        category: products2[i].productDetail.category,
+        manufacturer: products2[i].productDetail.manufacturer,
+        hotness: products2[i].productDetail.hotness,
+        weight: products2[i].productDetail.weight,
+        rating: {
+          average: products[i].product_details.rating.average,
+          nr_of_reviews: products[i].product_details.rating.nr_of_reviews,
         },
       },
-    });
-    // array.push(newProduct);
+    };
+    array.push(newProduct);
+
+    // await db.product.create({
+    //   data: {
+    //     title: products2[i].title,
+    //     sku: products2[i].sku,
+    //     slug: products2[i].slug,
+    //     price: products2[i].price,
+    //     pictures: products2[i].pictures.largePics,
+    //     description: {
+    //       create: {
+    //         description_short: products2[i].description.description_short,
+    //         description_long: products2[i].description.description_long,
+    //       },
+    //     },
+    //     productDetails: {
+    //       create: {
+    //         category: products2[i].productDetail.category,
+    //         manufacturer: products2[i].productDetail.manufacturer,
+    //         hotness: products2[i].productDetail.hotness,
+    //         weight: products2[i].productDetail.weight,
+    //         rating: {
+    //           create: {
+    //             average: products[i].product_details.rating.average,
+    //             nr_of_reviews: products[i].product_details.rating.nr_of_reviews,
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
   }
-  // console.log(JSON.stringify(array, null, 3));
+  console.log(JSON.stringify(array, null, 3));
 
   // for (const product of products) {
   //   await db.product.create({
