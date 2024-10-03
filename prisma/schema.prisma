@@ -8,45 +8,41 @@ datasource db {
 }
 
 model Product {
-  id        String   @id @default(uuid())
-  title     String
-  sku       String   @unique
-  slug      String   @unique
-  price     Float
-  pictures  String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  description     Description    @relation(fields: [descriptionId], references: [id])
+  id              String         @id @default(uuid())
+  title           String
+  sku             String         @unique
+  slug            String         @unique
+  price           Float
+  pictures        String[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   descriptionId   String         @unique
-  productDetails  ProductDetails @relation(fields: [productDetailId], references: [id])
   productDetailId String         @unique
+  description     Description    @relation(fields: [descriptionId], references: [id])
+  productDetails  ProductDetails @relation(fields: [productDetailId], references: [id])
 }
 
 model Description {
-  id                String @id @default(uuid())
+  id                String   @id @default(uuid())
   description_short String
   description_long  String
-
-  product Product?
+  product           Product?
 }
 
 model ProductDetails {
-  id           String @id @default(uuid())
+  id           String   @id @default(uuid())
   category     String
   manufacturer String
   hotness      Float
   weight       Float
-
-  product  Product?
-  rating   Rating   @relation(fields: [ratingId], references: [id])
-  ratingId String   @unique
+  ratingId     String   @unique
+  product      Product?
+  rating       Rating   @relation(fields: [ratingId], references: [id])
 }
 
 model Rating {
-  id            String @id @default(uuid())
-  average       Float
-  nr_of_reviews Int
-
+  id             String          @id @default(uuid())
+  average        Float
+  nr_of_reviews  Int
   ProductDetails ProductDetails?
 }

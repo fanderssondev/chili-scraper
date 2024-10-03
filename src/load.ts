@@ -28,11 +28,47 @@ interface Product {
   url: string;
 }
 
-const main = async () => {
-  const products = await db.product.findMany();
+const productsLoadFromDB = async () => {
+  const products = await db.product.findMany({
+    select: {
+      title: true,
+      sku: true,
+      slug: true,
+      price: true,
+      pictures: true,
+      description: {
+        select: {
+          description_short: true,
+          description_long: true,
+        }
+      },
+      productDetails: {
+        select: {
+          category: true,
+          manufacturer: true,
+          hotness: true,
+          weight: true,
+          rating: {
+            select: {
+              average: true,
+              nr_of_reviews: true,
+            }
+          }
+        }
+      }
+    }
+  });
+};
 
-  // fs.writeFile('products2.json', JSON.stringify(products, null, 2), (err) => {});
-  console.log(products);
+const seed;
+
+const main = async () => {
+
+
+
+
+  // fs.writeFile('products.json', JSON.stringify(products, null, 2), (err) => {});
+  // console.log(JSON.stringify(products, null, 3));
 
   // const products: Product[] = JSON.parse(fs.readFileSync('./products2.json', { encoding: 'utf-8' }));
 
